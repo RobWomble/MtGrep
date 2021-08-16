@@ -80,7 +80,7 @@ def handbook_adapt(rule_input_file):
                 functions that were called by this if statement
                 anyway, or a single function that returned different
                 types of output depending on the input, which I don't
-                know how to handle without an if statement anyway.  '''
+                know how to handle without an if statement.  '''
             #    if rule_line == "\n":  # start new key if empty
             #        gloss_lines = 0
             #    elif gloss_lines == 0:  #define key
@@ -95,7 +95,7 @@ def handbook_adapt(rule_input_file):
 
     # create file to put rulebook_data into
     with open("rulebook.json", "r") as rule_output_file:
-        json.dump(rulebook_data, target_file)
+        json.dump(rulebook_data, rule_output_file)
 
 
 def test_rule_dict():
