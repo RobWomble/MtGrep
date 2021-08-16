@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ Author: Rob Womble
     Script to convert human-friendly MagicCompRules
-    file into a python-readable format              """
+    file into a python-friendly format              """
 
 # import statements here
 import json
@@ -14,9 +14,10 @@ SECTIONS = ['title', 'date', 'intro',
             'glossary', 'credits']
 
 
-def rule_dict():
+def rule_dict(rulebook_data_ref, line_str):
     """ Take rule lines from rulebook file and
-        convert them into complex dictionaries  """
+        convert them into complex dictionary
+        keys and values                     """
     pass
 
     ''' Rule dictionary: Rule format is: "(rule #).(subrule #) (text)"
@@ -27,11 +28,10 @@ def rule_dict():
         to see what I mean. Note that a period separates the rule and
         subrule, and the first subrule has a period instead of a letter.
         Also, the text ends with a period, since it's a sentence. I
-        still have to determine a method to break this up properly.
-    '''
+        still have to determine a method to break this up properly. '''
 
 
-def handbook_adapt(rule_input_file, rule_output_file):
+def handbook_adapt(rule_input_file):
     """ Main Function:
         defines data format,
         fills it with data,
@@ -48,19 +48,21 @@ def handbook_adapt(rule_input_file, rule_output_file):
     }
 
     # variables to increment (should be inside with?)
-    # section = 0
+    # current_section = 0
     # gloss_lines = 0
     # gloss_key = ""
 
-    # fill the dataset with information from rules text
+    # fill rulebook_data with information from rules text
     with open(rule_input_file, "r") as rulebook:
-        # I still have to research the object type and applicable
-        # methods for rulebook to see if the for loop will work
-        # as-is. it's at least hopefully obvious what the plan is
-        for line in rulebook:
+    ''' I still have to research the object type and applicable methods
+        for rulebook to see if the for line will work as-is, or if I
+        need to perform some method on it to make it iterable. It's at
+        least hopefully obvious what the plan is.                   '''
+        for rule_line in rulebook:
 
             # if the string matches one of the lines that denotes a
-            # new section: add 1 to section
+            # new section: add 1 to current_section, providing the
+            # determination of which elif works on a line
 
             # elif title, date, or intro sections:
             # join to appropriate key of rulebook_data
@@ -69,7 +71,8 @@ def handbook_adapt(rule_input_file, rule_output_file):
             # contents section can be reproduced by printing keys in
             # rules dictionary
 
-            # elif rules section: call rule_dict()
+            # elif rules section: call rule_dict() to translate,
+            # use returned data to define new values in ['rules']
 
             # elif glossary section:
             ''' I was considering making seperate function(s) for this
@@ -78,24 +81,37 @@ def handbook_adapt(rule_input_file, rule_output_file):
                 anyway, or a single function that returned different
                 types of output depending on the input, which I don't
                 know how to handle without an if statement anyway.  '''
-            # the following logic should save a key if the previous
-            # line was empty, add the line to the value of that key if
-            # it wasn't, restart the cycle if the current line is empty
-            #   if line == "\n":
-            #       gloss_lines = 0
-            #   elif gloss_lines == 0:
-            #       gloss_key = line
-            #       rulebook_data['glossary'][gloss_key] = []
-            #   else:
-            #       append line to the value of
-            #       rulebook_data['glossary'][gloss_key]
+            #    if rule_line == "\n":  # start new key if empty
+            #        gloss_lines = 0
+            #    elif gloss_lines == 0:  #define key
+            #        gloss_lines =+ 1
+            #        gloss_key = rule_line
+            #        rulebook_data['glossary'][gloss_key] = []
+            #    else:  #append to value of defined key
+            #        rulebook_data['glossary'][gloss_key].append(rule_line)
 
             # else:
-            #   must be credits, join to rulebook_data['credits']
+            #    must be credits, join to rulebook_data['credits']
 
-    # create file to put rule_data into
-    with open("rules.json", "r") as rule_output_file:
-        json.dump(rulebook_data, rule_output_file)
+    # create file to put rulebook_data into
+    with open("rulebook.json", "r") as rule_output_file:
+        json.dump(rulebook_data, target_file)
+
+
+def test_rule_dict():
+    # I have to define a variable here or I get complaints from vim
+    rulebook_test_dict = {}
+    # I would like to find a prettier way to write this.
+    assert rule_dict(rulebook_test_dict,
+                     "100.4a In constructed play, a sideboard may contain no\
+                     more than fifteen cards. The four-card limit\
+                     (see rule 100.2a) applies to the combined deck and\
+                     sideboard."
+                     ) == (rulebook_test_dict['rules']['100']['4a'],
+                           "In constructed play, a sideboard may contain no\
+                           more than fifteen cards. The four-card limit\
+                           (see rule 100.2a) applies to the combined deck and\
+                           sideboard.")
 
 
 if __name__ == "__main__":
