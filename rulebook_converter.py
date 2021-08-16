@@ -84,7 +84,7 @@ def handbook_adapt(rule_input_file):
             #    if rule_line == "\n":  # start new key if empty
             #        gloss_lines = 0
             #    elif gloss_lines == 0:  #define key
-            #        gloss_lines =+ 1
+            #        gloss_lines += 1
             #        gloss_key = rule_line
             #        rulebook_data['glossary'][gloss_key] = []
             #    else:  #append to value of defined key
