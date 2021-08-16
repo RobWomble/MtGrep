@@ -47,18 +47,15 @@ def handbook_adapt(rule_input_file):
             SECTIONS[6]: '',  # credits, use '\n'.join()
     }
 
-    # variables to increment (should be inside with?)
-    # current_section = 0
-    # gloss_lines = 0
-    # gloss_key = ""
-
     # fill rulebook_data with information from rules text
     with open(rule_input_file, "r") as rulebook:
-    ''' I still have to research the object type and applicable methods
-        for rulebook to see if the for line will work as-is, or if I
-        need to perform some method on it to make it iterable. It's at
-        least hopefully obvious what the plan is.                   '''
-        for rule_line in rulebook:
+
+        # variables used by for loop
+        current_section = 0
+        gloss_lines = 0
+        gloss_key = ""
+
+        for rule_line in rulebook.readlines():
 
             # if the string matches one of the lines that denotes a
             # new section: add 1 to current_section, providing the
@@ -99,15 +96,18 @@ def handbook_adapt(rule_input_file):
 
 
 def test_rule_dict():
-    # I have to define a variable here or I get complaints from vim
-    rulebook_test_dict = {}
+    ''' I'm defining a fake dictionary here in the hopes that pytest
+        will stop throwing errors at me.  Further testing is necessary
+        to determine if I'll have to define all of the layers of
+        dictionary in the actual code.                              '''
+    rulebook_test_dict = {'rules': {'1': {'100': {'4a': ''}}}}
     # I would like to find a prettier way to write this.
     assert rule_dict(rulebook_test_dict,
-                     "100.4a In constructed play, a sideboard may contain no\
-                     more than fifteen cards. The four-card limit\
-                     (see rule 100.2a) applies to the combined deck and\
-                     sideboard."
-                     ) == (rulebook_test_dict['rules']['100']['4a'],
+                     "100.4a In constructed play, a sideboard may\
+                     contain no more than fifteen cards. The four-card\
+                     limit (see rule 100.2a) applies to the combined\
+                     deck and sideboard."
+                     ) == (rulebook_test_dict['rules']['1']['100']['4a'],
                            "In constructed play, a sideboard may contain no\
                            more than fifteen cards. The four-card limit\
                            (see rule 100.2a) applies to the combined deck and\
