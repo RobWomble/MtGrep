@@ -69,22 +69,23 @@ def handbook_adapt(rule_input_file):
                 current_section += 1
 
             # discard blank lines unless glossary needs them
-            elif rule_line = '' and current_section != 7:
+            elif rule_line == '' and current_section != 7:
                 continue
 
             # title or date sections:
             elif current_section < 2:
+                rule_line = rule_line.strip('\\\ufeff') # title format
                 rulebook_data[SECTIONS[current_section]] = rule_line
                 current_section += 1
 
             # intro section:
             elif current_section == 3:
             # (current_section no longer matches SECTIONS)
-                if rulebook_data['intro'] = '':
+                if rulebook_data['intro'] == '':
                     rulebook_data['intro'] = rule_line
                 else:
                     intro_data = [rulebook_data['intro'], rule_line]
-                    rulebook_data['intro'] = '\n'.join(intro_data)
+                    rulebook_data['intro'] = '\n\n'.join(intro_data)
 
             # contents section can be reproduced by printing keys in
             # rules dictionary, so we'll ignore it
@@ -94,29 +95,27 @@ def handbook_adapt(rule_input_file):
             # rule_dict() returns code to add to rules section
             elif current_section == 6:
                 continue # write rule_dict() first
-            #    rule_code = rule_dict(rulebook_data, rule_line)
-            #    exec(rule_code)
+                rule_code = rule_dict(rulebook_data, rule_line)
+                exec(rule_code)
 
             # glossary section, multiple lines per entry
-            elif current section == 7:
-                continue #testing top level of rulebook_data first
-            #    if rule_line == '':  # start new key if empty
-            #        gloss_key = ''
-            #        gloss_lines = 0
-            #    elif gloss_lines == 0:  #define key
-            #        gloss_lines += 1
-            #        gloss_key = rule_line
-            #        rulebook_data['glossary'][gloss_key] = []
-            #    else:  #append to value of defined key
-            #        rule_line = str('\n' + rule_line)
-            #        rulebook_data['glossary'][gloss_key].append(rule_line)
+            elif current_section == 7:
+                if rule_line == '':  # start new key if empty
+                    gloss_key = ''
+                    gloss_lines = 0
+                elif gloss_lines == 0:  #define key
+                    gloss_lines += 1
+                    gloss_key = rule_line
+                    rulebook_data['glossary'][gloss_key] = []
+                else:  #append to value of defined key
+                    rulebook_data['glossary'][gloss_key].append(rule_line)
 
             else: # should be credits
-                if rulebook_data['credits'] = '':
+                if rulebook_data['credits'] == '':
                     rulebook_data['credits'] = rule_line
                 else:
                     credit_data = [rulebook_data['credits'], rule_line]
-                    rulebook_data['credits'] = '\n'.join(credit_data)
+                    rulebook_data['credits'] = '\n\n'.join(credit_data)
 
     # create file to put rulebook_data into
     #with open("rulebook.json", "r") as rule_output_file:
