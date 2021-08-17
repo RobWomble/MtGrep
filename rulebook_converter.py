@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ Author: Rob Womble
     Script to convert human-friendly MagicCompRules
-    file into a python-friendly format              """
+    txt file into a python-friendly json format     """
 
 # import statements here
 import json
@@ -74,13 +74,13 @@ def handbook_adapt(rule_input_file):
 
             # title or date sections:
             elif current_section < 2:
-                rule_line = rule_line.strip('\\\ufeff') # title format
+                rule_line = rule_line.strip('\\\ufeff')  # title format
                 rulebook_data[SECTIONS[current_section]] = rule_line
                 current_section += 1
 
+            # (current_section no longer matches SECTIONS)
             # intro section:
             elif current_section == 3:
-            # (current_section no longer matches SECTIONS)
                 if rulebook_data['intro'] == '':
                     rulebook_data['intro'] = rule_line
                 else:
@@ -94,7 +94,7 @@ def handbook_adapt(rule_input_file):
 
             # rule_dict() returns code to add to rules section
             elif current_section == 6:
-                continue # write rule_dict() first
+                continue  # write rule_dict() first
                 rule_code = rule_dict(rulebook_data, rule_line)
                 exec(rule_code)
 
@@ -103,14 +103,14 @@ def handbook_adapt(rule_input_file):
                 if rule_line == '':  # start new key if empty
                     gloss_key = ''
                     gloss_lines = 0
-                elif gloss_lines == 0:  #define key
+                elif gloss_lines == 0:  # define key
                     gloss_lines += 1
                     gloss_key = rule_line
                     rulebook_data['glossary'][gloss_key] = []
-                else:  #append to value of defined key
+                else:  # append to value of defined key
                     rulebook_data['glossary'][gloss_key].append(rule_line)
 
-            else: # should be credits
+            else:  # should be credits
                 if rulebook_data['credits'] == '':
                     rulebook_data['credits'] = rule_line
                 else:
@@ -118,23 +118,39 @@ def handbook_adapt(rule_input_file):
                     rulebook_data['credits'] = '\n\n'.join(credit_data)
 
     # create file to put rulebook_data into
-    #with open("rulebook.json", "r") as rule_output_file:
-    #    json.dump(rulebook_data, rule_output_file)
-    # not ready to write to file yet
+    with open("rulebook.json", "r") as rule_output_file:
+        pass  # write rule_dict(), then remove print line
+        json.dump(rulebook_data, rule_output_file)
     print(rulebook_data)
 
+
 def test_rule_dict():
-# remember to add another assert to verify the if logic for rule level
-    assert rule_dict("rulebook_test_dict", str(
+    errorlist = []
+    if rule_dict("rulebook_test_dict", str("6. Spells, Abilities, and Effects")
+                 ) != str("rulebook_test_dict['rules']['6'] = {}; "
+                          "rulebook_test_dict['rules']['6']['chapter'] "
+                          "= 'Spells, Abilities, and Effects'"):
+        errorlist.append("chapter function failed")
+
+    if rule_dict("rulebook_test_dict", str("205. Type Line")
+                 ) != str("rulebook_test_dict['rules']['2']['205'] = {}"
+                          "rulebook_test_dict['rules']['2']['205']"
+                          "['rule name'] = 'Type Line'"):
+        errorlist.append("rule function failed")
+
+    if rule_dict("rulebook_test_dict", str(
                      "100.4a In constructed play, a sideboard may"
                      "contain no more than fifteen cards. The four-card"
                      "limit (see rule 100.2a) applies to the combined"
                      "deck and sideboard.")
-                     ) == str("rulebook_test_dict['rules']['1']['100']['4a']"
-                              " = 'In constructed play, a sideboard may"
-                              " contain no more than fifteen cards. The "
-                              "four-card limit (see rule 100.2a) applies "
-                              "to the combined deck and sideboard.'")
+                 ) != str("rulebook_test_dict['rules']['1']['100']['4a']"
+                          " = 'In constructed play, a sideboard may"
+                          " contain no more than fifteen cards. The "
+                          "four-card limit (see rule 100.2a) applies "
+                          "to the combined deck and sideboard.'"):
+        errorlist.append("subrule function failed")
+
+    assert not errorlist, "failures:\n{}".format("\n".join(errorlist))
 
 
 if __name__ == "__main__":
