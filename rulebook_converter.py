@@ -7,17 +7,21 @@
 import json
 
 
-# define a constant with section names as a list.
-# will save lines in handbook_adapt()
+# defining constants for use later
+# section names as a list, saves elif lines later
 SECTIONS = ['title', 'date', 'intro',
             'contents', 'rules',
             'glossary', 'credits']
 
+# line names for handbook_adapt()'s if statement to look for.
+SECTION_DELIMS = ['Introduction', 'Contents', 'Glossary', 'Credits']
 
-def rule_dict(rulebook_data_ref, line_str):
-    """ Take rule lines from rulebook file and
-        convert them into complex dictionary
-        keys and values                     """
+
+def rule_dict(rulebook_dict_str, rule_line_str):
+    """ accepts the input of string that matches
+        the name of rulebook_data and a string pulled
+        from rules text, outputs a stingle string that
+        contains code to update the rulebook_data dict"""
     pass
 
     ''' Rule dictionary: Rule format is: "(rule #).(subrule #) (text)"
@@ -96,22 +100,19 @@ def handbook_adapt(rule_input_file):
 
 
 def test_rule_dict():
-    ''' I'm defining a fake dictionary here in the hopes that pytest
-        will stop throwing errors at me.  Further testing is necessary
-        to determine if I'll have to define all of the layers of
-        dictionary in the actual code.                              '''
-    rulebook_test_dict = {'rules': {'1': {'100': {'4a': ''}}}}
-    # I would like to find a prettier way to write this.
-    assert rule_dict(rulebook_test_dict,
-                     "100.4a In constructed play, a sideboard may\
-                     contain no more than fifteen cards. The four-card\
-                     limit (see rule 100.2a) applies to the combined\
-                     deck and sideboard."
-                     ) == (rulebook_test_dict['rules']['1']['100']['4a'],
-                           "In constructed play, a sideboard may contain no\
-                           more than fifteen cards. The four-card limit\
-                           (see rule 100.2a) applies to the combined deck and\
-                           sideboard.")
+    # I sure hope this string concatenation works how I think it works.
+    assert rule_dict("rulebook_test_dict", str(
+                     "100.4a In constructed play, a sideboard may"
+                     "contain no more than fifteen cards. The four-card"
+                     "limit (see rule 100.2a) applies to the combined"
+                     "deck and sideboard.")
+                     ) == str("rulebook_test_dict['rules']['1'] = {}; "
+                              "rulebook_test_dict['rules']['1']['100'] = {}; "
+                              "rulebook_test_dict['rules']['1']['100']['4a']"
+                              " = 'In constructed play, a sideboard may"
+                              " contain no more than fifteen cards. The "
+                              "four-card limit (see rule 100.2a) applies "
+                              "to the combined deck and sideboard.'")
 
 
 if __name__ == "__main__":
