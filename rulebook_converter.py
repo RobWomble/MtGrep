@@ -57,58 +57,81 @@ def handbook_adapt(rule_input_file):
         # variables used by for loop
         current_section = 0
         gloss_lines = 0
-        gloss_key = ""
+        gloss_key = ''
 
         for rule_line in rulebook.readlines():
 
-            # if the string matches one of the lines that denotes a
-            # new section: add 1 to current_section, providing the
-            # determination of which elif works on a line
+            # remove line breaks: makes logic easier to write
+            rule_line = rule_line.strip('\n')
 
-            # elif title, date, or intro sections:
-            # join to appropriate key of rulebook_data
+            # increment to track document position
+            if rule_line in SECTION_DELIMS:
+                current_section += 1
 
-            # elif contents section: ignore
+            # discard blank lines unless glossary needs them
+            elif rule_line = '' and current_section != 7:
+                continue
+
+            # title or date sections:
+            elif current_section < 2:
+                rulebook_data[SECTIONS[current_section]] = rule_line
+                current_section += 1
+
+            # intro section:
+            elif current_section == 3:
+            # (current_section no longer matches SECTIONS)
+                if rulebook_data['intro'] = '':
+                    rulebook_data['intro'] = rule_line
+                else:
+                    intro_data = [rulebook_data['intro'], rule_line]
+                    rulebook_data['intro'] = '\n'.join(intro_data)
+
             # contents section can be reproduced by printing keys in
-            # rules dictionary
+            # rules dictionary, so we'll ignore it
+            elif current_section < 6:
+                continue
 
-            # elif rules section: call rule_dict() to translate,
-            # use returned data to define new values in ['rules']
+            # rule_dict() returns code to add to rules section
+            elif current_section == 6:
+                continue # write rule_dict() first
+            #    rule_code = rule_dict(rulebook_data, rule_line)
+            #    exec(rule_code)
 
-            # elif glossary section:
-            ''' I was considering making seperate function(s) for this
-                step, but I ended up with either multiple one-line
-                functions that were called by this if statement
-                anyway, or a single function that returned different
-                types of output depending on the input, which I don't
-                know how to handle without an if statement.  '''
-            #    if rule_line == "\n":  # start new key if empty
+            # glossary section, multiple lines per entry
+            elif current section == 7:
+                continue #testing top level of rulebook_data first
+            #    if rule_line == '':  # start new key if empty
+            #        gloss_key = ''
             #        gloss_lines = 0
             #    elif gloss_lines == 0:  #define key
             #        gloss_lines += 1
             #        gloss_key = rule_line
             #        rulebook_data['glossary'][gloss_key] = []
             #    else:  #append to value of defined key
+            #        rule_line = str('\n' + rule_line)
             #        rulebook_data['glossary'][gloss_key].append(rule_line)
 
-            # else:
-            #    must be credits, join to rulebook_data['credits']
+            else: # should be credits
+                if rulebook_data['credits'] = '':
+                    rulebook_data['credits'] = rule_line
+                else:
+                    credit_data = [rulebook_data['credits'], rule_line]
+                    rulebook_data['credits'] = '\n'.join(credit_data)
 
     # create file to put rulebook_data into
-    with open("rulebook.json", "r") as rule_output_file:
-        json.dump(rulebook_data, rule_output_file)
-
+    #with open("rulebook.json", "r") as rule_output_file:
+    #    json.dump(rulebook_data, rule_output_file)
+    # not ready to write to file yet
+    print(rulebook_data)
 
 def test_rule_dict():
-    # I sure hope this string concatenation works how I think it works.
+# remember to add another assert to verify the if logic for rule level
     assert rule_dict("rulebook_test_dict", str(
                      "100.4a In constructed play, a sideboard may"
                      "contain no more than fifteen cards. The four-card"
                      "limit (see rule 100.2a) applies to the combined"
                      "deck and sideboard.")
-                     ) == str("rulebook_test_dict['rules']['1'] = {}; "
-                              "rulebook_test_dict['rules']['1']['100'] = {}; "
-                              "rulebook_test_dict['rules']['1']['100']['4a']"
+                     ) == str("rulebook_test_dict['rules']['1']['100']['4a']"
                               " = 'In constructed play, a sideboard may"
                               " contain no more than fifteen cards. The "
                               "four-card limit (see rule 100.2a) applies "
