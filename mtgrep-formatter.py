@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-""" Author: Rob Womble
+""" Magic: The Greppening | CompRules Formatter
+    Author: Rob Womble
     Script to convert human-friendly MagicCompRules
     txt file into a python-friendly json format     """
 
