@@ -18,22 +18,39 @@ SECTIONS = ['title', 'date', 'intro',
 SECTION_DELIMS = ['Introduction', 'Contents', 'Glossary', 'Credits']
 
 
-def rule_dict(rulebook_dict_str, rule_line_str):
-    """ accepts the input of string that matches
-        the name of rulebook_data and a string pulled
-        from rules text, outputs a stingle string that
-        contains code to update the rulebook_data dict"""
-    pass
+def rule_dict(rule_line, old_line):
+    """ returns a string of code designed to update the dictionary """
 
-    ''' Rule dictionary: Rule format is: "(rule #).(subrule #) (text)"
-        I want to split the line at the first period and make the
-        rule number a key with the value of a dictionary where every
-        subrule number is a key and subrule text is the value.
-        That sentence may be hard to read, refer to the test function
-        to see what I mean. Note that a period separates the rule and
-        subrule, and the first subrule has a period instead of a letter.
-        Also, the text ends with a period, since it's a sentence. I
-        still have to determine a method to break this up properly. '''
+    # Rule format is: "(rule #).(subrule #) (text)"
+    rule_output = ''
+    rule_chap = rule_line[0]
+    rule_text = rule_line.split(maxsplit=1)[1]
+    rule_num = rule_line.split(maxsplit=1)[0].split('.')[0]
+    # the following presents an index error on lines where
+    # the only period is at the end. since such lines are
+    # handled by else, which doesn't use the variable in
+    # question, it's safe to ignore.
+    try:
+        rule_sub = rule_line.split(maxsplit=1)[0].split('.')[1]
+    except IndexError:
+        pass
+    if rule_line[1] == '.':
+        rule_output = str(
+            f'rulebook_data["rules"]["{rule_chap}"] = {{}}; '
+            f'rulebook_data["rules"]["{rule_chap}"]["chapter"] = "{rule_text}"')
+    elif rule_line[3:5] == '. ':
+        rule_output = str(
+            f'rulebook_data["rules"]["{rule_chap}"]["{rule_num}"] = {{}}; '
+            f'rulebook_data["rules"]["{rule_chap}"]["{rule_num}"]["rule"] = "{rule_text}"')
+    elif rule_line[3] == '.' and rule_line[4] != ' ':
+        rule_output = str(
+            f'rulebook_data["rules"]["{rule_chap}"]["{rule_num}"]'
+            f'["{rule_sub}"] = "{rule_text}"')
+    else:
+        rule_line = str('\\n' + rule_line)
+        rule_output = str(old_line[:-1] + rule_line + old_line[-1])
+
+    return str(rule_output)
 
 
 def handbook_adapt(rule_input_file):
@@ -59,11 +76,12 @@ def handbook_adapt(rule_input_file):
         current_section = 0
         gloss_lines = 0
         gloss_key = ''
+        old_line = ''
 
         for rule_line in rulebook.readlines():
 
             # remove line breaks: makes logic easier to write
-            rule_line = rule_line.strip('\n')
+            rule_line = rule_line.strip('\n ')
 
             # increment to track document position
             if rule_line in SECTION_DELIMS:
@@ -95,9 +113,9 @@ def handbook_adapt(rule_input_file):
 
             # rule_dict() returns code to add to rules section
             elif current_section == 6:
-                continue  # write rule_dict() first
-                rule_code = rule_dict(rulebook_data, rule_line)
-                exec(rule_code)
+                new_line = rule_dict(rule_line, old_line)
+                exec(new_line)
+                old_line = new_line
 
             # glossary section, multiple lines per entry
             elif current_section == 7:
@@ -119,39 +137,8 @@ def handbook_adapt(rule_input_file):
                     rulebook_data['credits'] = '\n\n'.join(credit_data)
 
     # create file to put rulebook_data into
-    with open("rulebook.json", "r") as rule_output_file:
-        pass  # write rule_dict(), then remove print line
+    with open("rulebook.json", "a") as rule_output_file:
         json.dump(rulebook_data, rule_output_file)
-    print(rulebook_data)
-
-
-def test_rule_dict():
-    errorlist = []
-    if rule_dict("rulebook_test_dict", str("6. Spells, Abilities, and Effects")
-                 ) != str("rulebook_test_dict['rules']['6'] = {}; "
-                          "rulebook_test_dict['rules']['6']['chapter'] "
-                          "= 'Spells, Abilities, and Effects'"):
-        errorlist.append("chapter function failed")
-
-    if rule_dict("rulebook_test_dict", str("205. Type Line")
-                 ) != str("rulebook_test_dict['rules']['2']['205'] = {}"
-                          "rulebook_test_dict['rules']['2']['205']"
-                          "['rule name'] = 'Type Line'"):
-        errorlist.append("rule function failed")
-
-    if rule_dict("rulebook_test_dict", str(
-                     "100.4a In constructed play, a sideboard may"
-                     "contain no more than fifteen cards. The four-card"
-                     "limit (see rule 100.2a) applies to the combined"
-                     "deck and sideboard.")
-                 ) != str("rulebook_test_dict['rules']['1']['100']['4a']"
-                          " = 'In constructed play, a sideboard may"
-                          " contain no more than fifteen cards. The "
-                          "four-card limit (see rule 100.2a) applies "
-                          "to the combined deck and sideboard.'"):
-        errorlist.append("subrule function failed")
-
-    assert not errorlist, "failures:\n{}".format("\n".join(errorlist))
 
 
 if __name__ == "__main__":
