@@ -4,14 +4,13 @@
 This project is an attempt to create a tool with python that can be used to reference an offline copy of the Comprehensive Rulebook for Magic: The Gathering.
 
 ### Current features:
-* none, I haven't started
+* Rule formatting tool: Converts the comprehensive rules txt into python-friendly json.
 
 ### Features to be added in the future:
 * list rules by chapter
 * list paragraphs in a rule, given a rule number
 * update local rules file through web request
 * search by keyword
-* AND MORE!
 
 ## Inspiration
 (INSERT LONG STORY HERE)
