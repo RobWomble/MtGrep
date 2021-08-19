@@ -26,33 +26,31 @@ def rule_dict(rule_line, old_line):
     rule_chap = rule_line[0]
     rule_text = rule_line.split(maxsplit=1)[1]
     rule_num = rule_line.split(maxsplit=1)[0].split('.')[0]
-    ''' the following presents an index error on lines where
-    the only period is at the end. since such lines are
-    handled by else, which doesn't use the variable in
-    question, it's safe to ignore.                      '''
+    # the following only gives index errors on lines used by else,
+    # which doesn't use this variable, so it's safe to ignore.
     try:
         rule_sub = rule_line.split(maxsplit=1)[0].split('.')[1]
     except IndexError:
         pass
-    
+
     # single digit followed by period denotes chapter
     if rule_line[1] == '.':
         rule_output = str(
             f'rulebook_data["rules"]["{rule_chap}"] = {{}}; '
             f'rulebook_data["rules"]["{rule_chap}"]["chapter"] = "{rule_text}"')
-    
+
     # 3 digits without a number after the period: rule title
     elif rule_line[3:5] == '. ':
         rule_output = str(
             f'rulebook_data["rules"]["{rule_chap}"]["{rule_num}"] = {{}}; '
             f'rulebook_data["rules"]["{rule_chap}"]["{rule_num}"]["rule"] = "{rule_text}"')
-    
+
     # 3 digits with number after period: subrule paragraph
     elif rule_line[3] == '.' and rule_line[4] != ' ':
         rule_output = str(
             f'rulebook_data["rules"]["{rule_chap}"]["{rule_num}"]'
             f'["{rule_sub}"] = "{rule_text}"')
-    
+
     else:  # example text provided after some rules
         rule_line = str('\\n' + rule_line)
         rule_output = str(old_line[:-1] + rule_line + old_line[-1])
