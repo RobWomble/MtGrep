@@ -172,7 +172,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
             description='Convert MTG Comprehensive rules to json file.')
     parser.add_argument('-f', '--file',
-                        default="MagicCompRules-20210712.txt",
+                        default="MagicCompRules 20210712.txt",
                         help='input from local file',
                         type=str)
     args = parser.parse_args()
