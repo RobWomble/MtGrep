@@ -25,7 +25,7 @@ rule_sub = ''; rule_text = ''
 
 
 def rule_dict(rulebook_data, rule_line):
-    """ update the dictionary with 
+    """ update the dictionary with
         the given rulebook line    """
 
     #  these were defined globally so we can reuse them later
@@ -35,7 +35,7 @@ def rule_dict(rulebook_data, rule_line):
     global rule_num
     global rule_sub
     global rule_text
-    
+
     # we only want these to update if NOT an example line
     if rule_line[1] == '.' or rule_line[3] == '.':
         rule_chap = rule_line[0]
@@ -63,12 +63,14 @@ def rule_dict(rulebook_data, rule_line):
     else:
         old_text = rulebook_data['rules'][rule_chap][rule_num][rule_sub]
         rulebook_data['rules'][rule_chap][rule_num][rule_sub] \
-                = '\n'.join([old_text, rule_line])
+            = '\n'.join([old_text, rule_line])
     # give updated file back to handbook_data()
     return rulebook_data
 
 
 def dump_to_file(rulebook_data):
+    """ dumps rulebook_data to file """
+
     # create file to put rulebook_data into
     with open("rulebook.json", "a") as rule_output_file:
         # save the data in the file as json
@@ -78,8 +80,8 @@ def dump_to_file(rulebook_data):
 
 
 def handbook_adapt(rule_input_file):
-    """defines and fills data structure"""
-    
+    """ defines and fills data structure """
+
     # define the format of the final file
     rulebook_data = {
             SECTIONS[0]: '',  # title
@@ -97,7 +99,6 @@ def handbook_adapt(rule_input_file):
         current_section = 0
         gloss_lines = 0
         gloss_key = ''
-        old_line = ''
 
         # generate and manipulate each line in file
         for rule_line in rulebook.readlines():
@@ -157,10 +158,10 @@ def handbook_adapt(rule_input_file):
 
 def main(target_file):
     """calls the other functions"""
-    
+
     # generate dictionary
     rulebook_data = handbook_adapt(target_file)
-    # save to file    
+    # save to file
     if dump_to_file(rulebook_data):
         print("success")
 
