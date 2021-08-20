@@ -4,8 +4,9 @@
     Script to convert human-friendly MagicCompRules
     txt file into a python-friendly json format     """
 
-# import statements here
+
 import json
+import argparse
 
 
 # defining constants for use later
@@ -168,4 +169,12 @@ def main(target_file):
 
 # run with current rules text in working directory
 if __name__ == "__main__":
-    main("MagicCompRules-20210712.txt")
+    parser = argparse.ArgumentParser(
+            description='Convert MTG Comprehensive rules to json file.')
+    parser.add_argument('-f', '--file',
+                        default="MagicCompRules-20210712.txt",
+                        help='input from local file',
+                        type=str)
+    args = parser.parse_args()
+
+    main(args.file)
