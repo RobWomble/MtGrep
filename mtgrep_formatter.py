@@ -64,8 +64,7 @@ def rule_dict(rulebook_data, rule_line):
         old_text = rulebook_data['rules'][rule_chap][rule_num][rule_sub]
         rulebook_data['rules'][rule_chap][rule_num][rule_sub] \
                 = '\n'.join([old_text, rule_line])
-    
-    # give updated file back to the for loop
+    # give updated file back to handbook_data()
     return rulebook_data
 
 
@@ -79,10 +78,8 @@ def dump_to_file(rulebook_data):
 
 
 def handbook_adapt(rule_input_file):
-    """ Main Function:
-        defines data format,
-        fills it with data  """
-
+    """defines and fills data structure"""
+    
     # define the format of the final file
     rulebook_data = {
             SECTIONS[0]: '',  # title
@@ -155,12 +152,19 @@ def handbook_adapt(rule_input_file):
                 else:
                     credit_data = [rulebook_data['credits'], rule_line]
                     rulebook_data['credits'] = '\n\n'.join(credit_data)
-            
-        # save to file    
-        if dump_to_file(rulebook_data):
-            print("success")
+    return rulebook_data
+
+
+def main(target_file):
+    """calls the other functions"""
+    
+    # generate dictionary
+    rulebook_data = handbook_adapt(target_file)
+    # save to file    
+    if dump_to_file(rulebook_data):
+        print("success")
 
 
 # run with current rules text in working directory
 if __name__ == "__main__":
-    handbook_adapt("MagicCompRules-20210712.txt")
+    main("MagicCompRules-20210712.txt")
