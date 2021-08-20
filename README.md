@@ -14,7 +14,7 @@ This project is an attempt to create a tool with python that can be used to refe
 * update local rules file through web request
 
 ## Requirements
-* The current script has been tested and known to work with Python 3.8.10
+* The current script has been tested and known to work with Python 3.6.9
 * The only module used are json and argparse, which are included in The Python Standard Library.
 * YOU MUST PROVIDE YOUR OWN COPY OF THE RULEBOOK TXT FILE. Current script is confirmed working on the rulebook version that released July 12, 2021, but the script was written to work with future versions as well. Latest version can be downloaded from https://magic.wizards.com/en/game-info/gameplay/rules-and-formats/rules
 
