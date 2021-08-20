@@ -16,7 +16,7 @@ This project is an attempt to create a tool with python that can be used to refe
 ## Requirements
 * The current script has been tested and known to work with Python 3.8.10
 * The only module used is json, which is included in The Python Standard Library.
-* YOU MUST PROVIDE YOUR OWN COPY OF THE RULEBOOK TXT FILE. Latest version can be downloaded from https://magic.wizards.com/en/game-info/gameplay/rules-and-formats/rules
+* YOU MUST PROVIDE YOUR OWN COPY OF THE RULEBOOK TXT FILE. Current script is confirmed working on the rulebook version that released July 12, 2021, but the script was written to work with future versions as well. Latest version can be downloaded from https://magic.wizards.com/en/game-info/gameplay/rules-and-formats/rules
 
 ## Inspiration
 The short story is that I wanted a friendlier way to reference the official rules for Magic without requiring internet access.
@@ -32,5 +32,7 @@ In order to accomplish this project, I had to use the following pythonic skills:
 * if/elif/else logic
 * file manipulation (open(r/w))
 * string manipulation (slicing, concatenation)
-* complex dictionary comprehension
+* complex dictionary comprehension and methods
 * json/python conversion
+* error handling
+* variable scope
