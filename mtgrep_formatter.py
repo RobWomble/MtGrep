@@ -18,51 +18,46 @@ SECTIONS = ['title', 'date', 'intro',
 SECTION_DELIMS = ['Introduction', 'Contents', 'Glossary', 'Credits']
 
 
-def rule_dict(rule_line, old_line):
-    """ returns a string of code designed to update the dictionary """
-
-    # Rule format is: "(rule #).(subrule #) (text)"
-    rule_output = ''
+def rule_dict(rulebook_data, rule_line):
+    """ update the dictionary with 
+        the given rulebook line    """
+    
+    nonlocal current_chapter_data
+    nonlocal current_rulenum_data
+    nonlocal rule_chap, rule_num
+    nonlocal rule_sub, rule_text
+    
+    if (rule_line[1] or rule_line[3]) == '.':
     rule_chap = rule_line[0]
-    rule_text = rule_line.split(maxsplit=1)[1]
     rule_num = rule_line.split(maxsplit=1)[0].split('.')[0]
-    # the following only gives index errors on lines used by else,
-    # which doesn't use this variable, so it's safe to ignore.
-    try:
-        rule_sub = rule_line.split(maxsplit=1)[0].split('.')[1]
-    except IndexError:
-        pass
+    rule_sub = rule_line.split(maxsplit=1)[0].split('.')[1]
+    rule_text = rule_line.split(maxsplit=1)[1]
 
-    # single digit followed by period denotes chapter
     if rule_line[1] == '.':
-        rule_output = str(
-            f'rulebook_data["rules"]["{rule_chap}"] = {{}}; '
-            f'rulebook_data["rules"]["{rule_chap}"]["chapter"] = "{rule_text}"')
-
-    # 3 digits without a number after the period: rule title
+        current_chapter_data = {'chapter title': rule_text}
+        rulebook_data['rules'].update({rule_chap: ''})
+        rulebook_data['rules'][rule_chap] = current_chapter_data
     elif rule_line[3:5] == '. ':
-        rule_output = str(
-            f'rulebook_data["rules"]["{rule_chap}"]["{rule_num}"] = {{}}; '
-            f'rulebook_data["rules"]["{rule_chap}"]["{rule_num}"]["rule"] = "{rule_text}"')
-
-    # 3 digits with number after period: subrule paragraph
+        current_rulenum_data = {'rule name': rule_text}
+        current_chapter_data.update({rule_num: ''})
+        current_chapter_data[rule_num] = current_rulenum_data
+        rulebook_data['rules'][rule_chap] = current_chapter_data
     elif rule_line[3] == '.' and rule_line[4] != ' ':
-        rule_output = str(
-            f'rulebook_data["rules"]["{rule_chap}"]["{rule_num}"]'
-            f'["{rule_sub}"] = "{rule_text}"')
-
-    else:  # example text provided after some rules
-        rule_line = str('\\n' + rule_line)
-        rule_output = str(old_line[:-1] + rule_line + old_line[-1])
-
-    return str(rule_output)
+        current_rulenum_data.update({rule_sub: rule_text})
+        current_chapter_data[rule_num] = current_rulenum_data
+        rulebook_data['rules'][rule_chap] = current_chapter_data
+    else:
+        old_text = rulebook_data['rules'][rule_chap][rule_num][rule_sub]
+        rulebook_data['rules'][rule_chap][rule_num][rule_sub] \
+                = '\n'.join([old_text, rule_line])
+    
+    return rulebook_data
 
 
 def handbook_adapt(rule_input_file):
     """ Main Function:
         defines data format,
-        fills it with data,
-        saves to a file     """
+        fills it with data  """
 
     # define the format of the final file
     rulebook_data = {
@@ -81,8 +76,11 @@ def handbook_adapt(rule_input_file):
         current_section = 0
         gloss_lines = 0
         gloss_key = ''
-        # must be defined to run rule_dict()
-        old_line = ''
+        # variables updated and referenced by rule_dict()
+        current_chapter_data = ''
+        current_rulenum_data = ''
+        rule_chap = ''; rule_num = ''
+        rule_sub = ''; rule_text = ''
 
         # generate and manipulate each line in file
         for rule_line in rulebook.readlines():
@@ -121,9 +119,12 @@ def handbook_adapt(rule_input_file):
 
             # rule_dict() returns code to add to rules section
             elif current_section == 6:
-                new_line = rule_dict(rule_line, old_line)
-                exec(new_line)
-                old_line = new_line
+                rulebook_data = rule_dict(rulebook_data, rule_line)
+                debug_pause = input('>')
+                if debug_pause == '':
+                    continue
+                else:
+                    exit()
 
             # glossary section, multiple lines per entry
             elif current_section == 7:
