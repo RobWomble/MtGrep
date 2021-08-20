@@ -17,28 +17,36 @@ SECTIONS = ['title', 'date', 'intro',
 # line names for handbook_adapt()'s if statement to look for.
 SECTION_DELIMS = ['Introduction', 'Contents', 'Glossary', 'Credits']
 
+# variables updated and referenced by rule_dict()
+current_chapter_data = ''
+current_rulenum_data = ''
+rule_chap = ''; rule_num = ''
+rule_sub = ''; rule_text = ''
+
 
 def rule_dict(rulebook_data, rule_line):
     """ update the dictionary with 
         the given rulebook line    """
     
-    nonlocal current_chapter_data
-    nonlocal current_rulenum_data
-    nonlocal rule_chap, rule_num
-    nonlocal rule_sub, rule_text
+    global current_chapter_data
+    global current_rulenum_data
+    global rule_chap
+    global rule_num
+    global rule_sub
+    global rule_text
     
-    if (rule_line[1] or rule_line[3]) == '.':
-    rule_chap = rule_line[0]
-    rule_num = rule_line.split(maxsplit=1)[0].split('.')[0]
-    rule_sub = rule_line.split(maxsplit=1)[0].split('.')[1]
-    rule_text = rule_line.split(maxsplit=1)[1]
+    if rule_line[1] == '.' or rule_line[3] == '.':
+        rule_chap = rule_line[0]
+        rule_num = rule_line.split(maxsplit=1)[0].split('.')[0]
+        rule_sub = rule_line.split(maxsplit=1)[0].split('.')[1]
+        rule_text = rule_line.split(maxsplit=1)[1]
 
     if rule_line[1] == '.':
-        current_chapter_data = {'chapter title': rule_text}
+        current_chapter_data = {'chapter': rule_text}
         rulebook_data['rules'].update({rule_chap: ''})
         rulebook_data['rules'][rule_chap] = current_chapter_data
     elif rule_line[3:5] == '. ':
-        current_rulenum_data = {'rule name': rule_text}
+        current_rulenum_data = {'rule': rule_text}
         current_chapter_data.update({rule_num: ''})
         current_chapter_data[rule_num] = current_rulenum_data
         rulebook_data['rules'][rule_chap] = current_chapter_data
@@ -76,11 +84,7 @@ def handbook_adapt(rule_input_file):
         current_section = 0
         gloss_lines = 0
         gloss_key = ''
-        # variables updated and referenced by rule_dict()
-        current_chapter_data = ''
-        current_rulenum_data = ''
-        rule_chap = ''; rule_num = ''
-        rule_sub = ''; rule_text = ''
+        old_line = ''
 
         # generate and manipulate each line in file
         for rule_line in rulebook.readlines():
@@ -120,11 +124,6 @@ def handbook_adapt(rule_input_file):
             # rule_dict() returns code to add to rules section
             elif current_section == 6:
                 rulebook_data = rule_dict(rulebook_data, rule_line)
-                debug_pause = input('>')
-                if debug_pause == '':
-                    continue
-                else:
-                    exit()
 
             # glossary section, multiple lines per entry
             elif current_section == 7:
@@ -134,9 +133,12 @@ def handbook_adapt(rule_input_file):
                 elif gloss_lines == 0:  # define key
                     gloss_lines += 1
                     gloss_key = rule_line
-                    rulebook_data['glossary'][gloss_key] = []
-                else:  # append to value of defined key
-                    rulebook_data['glossary'][gloss_key].append(rule_line)
+                    rulebook_data['glossary'][gloss_key] = ''
+                else:   # join to value of defined key,
+                        # remove leading newline
+                    rulebook_data['glossary'][gloss_key]\
+                            = '\n'.join([rulebook_data['glossary'][gloss_key],
+                                        rule_line]).strip('\n')
 
             else:  # should be credits
                 if rulebook_data['credits'] == '':
