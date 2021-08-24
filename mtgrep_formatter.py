@@ -1,72 +1,146 @@
 #!/usr/bin/env python3
 """ Magic: The Greppening | CompRules Formatter
-    Author: Rob Womble
+    Author: Rob Womble    | Revision: 3
     Script to convert human-friendly MagicCompRules
     txt file into a python-friendly json format     """
 
 
+# standard library imports
 import json
 import argparse
 
 
-# defining constants for use later
-# section names as a list, saves elif lines later
-SECTIONS = ['title', 'date', 'intro',
-            'contents', 'rules',
-            'glossary', 'credits']
-
 # line names for handbook_adapt()'s if statement to look for.
 SECTION_DELIMS = ['Introduction', 'Contents', 'Glossary', 'Credits']
 
-# variables updated and referenced by rule_dict()
-current_chapter_data = ''
-current_rulenum_data = ''
-rule_chap = ''; rule_num = ''
-rule_sub = ''; rule_text = ''
 
+class RulebookData:
+    """ object to store and manipulate
+        data from source txt        """
+    def __init__(self):
+        self.chap_dict = {}
+        self.rule_dict = {}
+        self.rule_chap = ''
+        self.rule_num = ''
+        self.rule_sub = ''
+        self.rule_text = ''
+        self.gloss_blank = 0
+        self.gloss_key = ''
+        self.final_dict = {
+            'title': '',
+            'date': '',
+            'intro': '',
+            'rules': {},
+            'glossary': {},
+            'credits': '',
+        }
 
-def rule_dict(rulebook_data, rule_line):
-    """ update the dictionary with
-        the given rulebook line    """
+    def rule_add(self, rule_line):
+        """ update the dictionary with rulebook line """
 
-    #  these were defined globally so we can reuse them later
-    global current_chapter_data
-    global current_rulenum_data
-    global rule_chap
-    global rule_num
-    global rule_sub
-    global rule_text
+        # we only want these to update if NOT an example line
+        if rule_line[1] == '.' or rule_line[3] == '.':
+            self.rule_chap = rule_line[0]
+            self.rule_num = rule_line.split(maxsplit=1)[0].split('.')[0]
+            self.rule_sub = rule_line.split(maxsplit=1)[0].split('.')[1]
+            self.rule_text = rule_line.split(maxsplit=1)[1]
 
-    # we only want these to update if NOT an example line
-    if rule_line[1] == '.' or rule_line[3] == '.':
-        rule_chap = rule_line[0]
-        rule_num = rule_line.split(maxsplit=1)[0].split('.')[0]
-        rule_sub = rule_line.split(maxsplit=1)[0].split('.')[1]
-        rule_text = rule_line.split(maxsplit=1)[1]
+        # chapter line: create chapter dict and insert into main dict
+        if rule_line[1] == '.':
+            self.chap_dict = {'chapter': self.rule_text}
+            self.final_dict['rules'].update({self.rule_chap: ''})
+            self.final_dict['rules'][self.rule_chap] = self.chap_dict
+        # rule number line: create dict and push up to higher dicts
+        elif rule_line[3:5] == '. ':
+            self.rule_dict = {'rule': self.rule_text}
+            self.chap_dict.update({self.rule_num: ''})
+            self.chap_dict[self.rule_num] = self.rule_dict
+            self.final_dict['rules'][self.rule_chap] = self.chap_dict
+        # subrule: create dict and push to higher dicts
+        elif rule_line[3] == '.' and rule_line[4] != ' ':
+            self.rule_dict.update({self.rule_sub: self.rule_text})
+            self.chap_dict[self.rule_num] = self.rule_dict
+            self.final_dict['rules'][self.rule_chap] = self.chap_dict
+        # example line: join with newline to last entry
+        else:
+            # these variables are only for 80 character limit
+            chap = self.rule_chap
+            num = self.rule_num
+            sub = self.rule_sub
+            old = self.final_dict['rules'][chap][num][sub]
+            self.final_dict['rules'][chap][num][sub]\
+                = '\n'.join([old, rule_line])
 
-    # chapter line: create chapter dict and insert into main dict
-    if rule_line[1] == '.':
-        current_chapter_data = {'chapter': rule_text}
-        rulebook_data['rules'].update({rule_chap: ''})
-        rulebook_data['rules'][rule_chap] = current_chapter_data
-    # rule number line: create dict and push up to higher dicts
-    elif rule_line[3:5] == '. ':
-        current_rulenum_data = {'rule': rule_text}
-        current_chapter_data.update({rule_num: ''})
-        current_chapter_data[rule_num] = current_rulenum_data
-        rulebook_data['rules'][rule_chap] = current_chapter_data
-    # subrule: create dict and push to higher dicts
-    elif rule_line[3] == '.' and rule_line[4] != ' ':
-        current_rulenum_data.update({rule_sub: rule_text})
-        current_chapter_data[rule_num] = current_rulenum_data
-        rulebook_data['rules'][rule_chap] = current_chapter_data
-    # example line: join with newline to last entry
-    else:
-        old_text = rulebook_data['rules'][rule_chap][rule_num][rule_sub]
-        rulebook_data['rules'][rule_chap][rule_num][rule_sub] \
-            = '\n'.join([old_text, rule_line])
-    # give updated file back to handbook_data()
-    return rulebook_data
+    def gloss_add(self, rule_line):
+        """ update dictionary with glossary line """
+        # start new key if the line is empty
+        if rule_line == '':
+            self.gloss_key = ''
+            self.gloss_blank = 0
+        # define the current key if the previous line was empty
+        elif self.gloss_blank == 0:
+            self.gloss_blank += 1
+            self.gloss_key = rule_line
+            self.final_dict['glossary'][self.gloss_key] = ''
+        # join text to the value of the current key
+        else:
+            self.final_dict['glossary'][self.gloss_key]\
+                    = '\n'.join([self.final_dict['glossary'][self.gloss_key],
+                                rule_line]).strip('\n')
+
+    def paragraph_add(self, rule_line, section):
+        """ update paragraph sections """
+        # insert text in blank section
+        if self.final_dict[section] == '':
+            self.final_dict[section] = rule_line
+        # join to existing text
+        else:
+            sec_data = [self.final_dict[section], rule_line]
+            self.final_dict[section] = '\n\n'.join(sec_data)
+
+    def handbook_adapt(self, rule_input_file):
+        """ opens source file and
+            calls other functions to 
+            fill the data structure """
+        # open txt file to use contents
+        with open(rule_input_file, "r") as rulebook:
+            # used to track document progress
+            current_section = 0
+            # generate and manipulate each line in file
+            for line in rulebook.readlines():
+                # remove whitespace: makes logic easier to write
+                line = line.strip('\n ')
+                # increment to track document position
+                if line in SECTION_DELIMS:
+                    current_section += 1
+                # discard blank lines unless glossary needs them
+                elif line == '' and current_section != 6:
+                    continue
+                # title section:
+                elif current_section == 0:
+                    line = line.strip('\\\ufeff')  # title format
+                    self.final_dict['title'] = line
+                    current_section += 1
+                # date section:
+                elif current_section == 1:
+                    self.final_dict['date'] = line
+                # intro section:
+                elif current_section == 2:
+                    self.paragraph_add(line, 'intro')
+                # contents section can be reproduced by printing keys in
+                # rules dictionary and SECTION_DELIMS, so we'll ignore it
+                elif current_section < 5:
+                    continue
+                # rule_dict() returns code to add to rules section
+                elif current_section == 5:
+                    self.rule_add(line)
+                # glossary section, multiple lines per entry
+                elif current_section == 6:
+                    self.gloss_add(line)
+                else:  # should be credits
+                    self.paragraph_add(line, 'credits')
+        # return completed dictionary
+        return self.final_dict
 
 
 def dump_to_file(rulebook_data):
@@ -80,88 +154,13 @@ def dump_to_file(rulebook_data):
     return True
 
 
-def handbook_adapt(rule_input_file):
-    """ defines and fills data structure """
+def convert_from_local(target_file):
+    """ calls the other functions """
 
-    # define the format of the final file
-    rulebook_data = {
-            SECTIONS[0]: '',  # title
-            SECTIONS[1]: '',  # date
-            SECTIONS[2]: '',  # intro, use '\n'.join()
-            SECTIONS[4]: {},  # rules (skip contents)
-            SECTIONS[5]: {},  # glossary
-            SECTIONS[6]: '',  # credits, use '\n'.join()
-    }
-
-    # open txt file to use contents
-    with open(rule_input_file, "r") as rulebook:
-
-        # variables used by for loop
-        current_section = 0
-        gloss_lines = 0
-        gloss_key = ''
-
-        # generate and manipulate each line in file
-        for rule_line in rulebook.readlines():
-
-            # remove whitespace: makes logic easier to write
-            rule_line = rule_line.strip('\n ')
-
-            # increment to track document position
-            if rule_line in SECTION_DELIMS:
-                current_section += 1
-            # discard blank lines unless glossary needs them
-            elif rule_line == '' and current_section != 7:
-                continue
-            # title or date sections:
-            elif current_section < 2:
-                rule_line = rule_line.strip('\\\ufeff')  # title format
-                rulebook_data[SECTIONS[current_section]] = rule_line
-                current_section += 1
-            # Current_section no longer matches SECTIONS;
-            # intro section title caused an increment
-            # intro section:
-            elif current_section == 3:
-                if rulebook_data['intro'] == '':
-                    rulebook_data['intro'] = rule_line
-                else:
-                    intro_data = [rulebook_data['intro'], rule_line]
-                    rulebook_data['intro'] = '\n\n'.join(intro_data)
-            # contents section can be reproduced by printing keys in
-            # rules dictionary and SECTION_DELIMS, so we'll ignore it
-            elif current_section < 6:
-                continue
-            # rule_dict() returns code to add to rules section
-            elif current_section == 6:
-                rulebook_data = rule_dict(rulebook_data, rule_line)
-            # glossary section, multiple lines per entry
-            elif current_section == 7:
-                if rule_line == '':  # start new key if empty
-                    gloss_key = ''
-                    gloss_lines = 0
-                elif gloss_lines == 0:  # define key
-                    gloss_lines += 1
-                    gloss_key = rule_line
-                    rulebook_data['glossary'][gloss_key] = ''
-                else:   # join to value of defined key,
-                        # remove leading newline if first join
-                    rulebook_data['glossary'][gloss_key]\
-                            = '\n'.join([rulebook_data['glossary'][gloss_key],
-                                        rule_line]).strip('\n')
-            else:  # should be credits
-                if rulebook_data['credits'] == '':
-                    rulebook_data['credits'] = rule_line
-                else:
-                    credit_data = [rulebook_data['credits'], rule_line]
-                    rulebook_data['credits'] = '\n\n'.join(credit_data)
-    return rulebook_data
-
-
-def main(target_file):
-    """calls the other functions"""
-
-    # generate dictionary
-    rulebook_data = handbook_adapt(target_file)
+    # generate dictionary object
+    rulebook_data = RulebookData()
+    # return final dictionary
+    rulebook_data = rulebook_data.handbook_adapt(target_file)
     # save to file
     if dump_to_file(rulebook_data):
         print("success")
@@ -177,4 +176,4 @@ if __name__ == "__main__":
                         type=str)
     args = parser.parse_args()
 
-    main(args.file)
+    convert_from_local(args.file)
