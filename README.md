@@ -28,9 +28,9 @@ Of course, by its nature as the comprehensive document, it's not the easiest to 
 When I started playing Magic again in mid-2021, I of course ran into a card effect that had been added since the last time I had played, and a google search returned links to videos I had no interest in and message board posts filled with arguments about how the new effect was either good or bad.  I decided to pull out "old reliable", the comprehensive txt.  I found what I needed to know after some digging, and in the process, I noticed that the txt version in particular had very little formatting applied to it, with no special characters and every piece of information contained on its own line.  I was taking a linux class at the time, and realized it was quite convenient to use grep for whatever keyword I was interested in and have all lines mentioning the keyword on screen at once.  This gave me the idea to try to write a shell script that would allow me to either print all the rules with a matching keyword in them or print a specific rule, depending on input.  I didn't get around to it before I started learning python and realized I could do more.
 
 ## Version History
-* v0.1.2 Revised formatter
+* v0.1.2 Revised formatter;
 Removed uses of global, now uses class attributes
-* v0.1.1 Revised formatter
+* v0.1.1 Revised formatter;
 Removed uses of exec; now uses global
 * v0.1 Completed formatter
 
